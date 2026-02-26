@@ -1,0 +1,26 @@
+[
+  {
+    "categoryId": "penal",
+    "name": "Penal Law",
+    "displayOrder": 1,
+    "entryCount": 15
+  },
+  {
+    "categoryId": "cpl",
+    "name": "Criminal Procedure Law",
+    "displayOrder": 2,
+    "entryCount": 12
+  },
+  {
+    "categoryId": "vtl",
+    "name": "Vehicle & Traffic Law",
+    "displayOrder": 3,
+    "entryCount": 10
+  },
+  {
+    "categoryId": "admin",
+    "name": "Administrative Code",
+    "displayOrder": 4,
+    "entryCount": 8
+  }
+]
