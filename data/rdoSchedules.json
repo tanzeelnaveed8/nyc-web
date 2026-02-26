@@ -1,0 +1,47 @@
+[
+  {
+    "scheduleId": 1,
+    "squadId": 1,
+    "patternType": "rotating",
+    "cycleLength": 15,
+    "patternArray": ["W","W","W","W","W","O","O","W","W","W","W","W","O","O","O"],
+    "anchorDate": "2024-01-01",
+    "squadOffset": 0
+  },
+  {
+    "scheduleId": 2,
+    "squadId": 2,
+    "patternType": "rotating",
+    "cycleLength": 15,
+    "patternArray": ["W","W","W","W","W","O","O","W","W","W","W","W","O","O","O"],
+    "anchorDate": "2024-01-01",
+    "squadOffset": 3
+  },
+  {
+    "scheduleId": 3,
+    "squadId": 3,
+    "patternType": "rotating",
+    "cycleLength": 15,
+    "patternArray": ["W","W","W","W","W","O","O","W","W","W","W","W","O","O","O"],
+    "anchorDate": "2024-01-01",
+    "squadOffset": 6
+  },
+  {
+    "scheduleId": 4,
+    "squadId": 4,
+    "patternType": "rotating",
+    "cycleLength": 15,
+    "patternArray": ["W","W","W","W","W","O","O","W","W","W","W","W","O","O","O"],
+    "anchorDate": "2024-01-01",
+    "squadOffset": 9
+  },
+  {
+    "scheduleId": 5,
+    "squadId": 5,
+    "patternType": "steady",
+    "cycleLength": 7,
+    "patternArray": ["O","W","W","W","W","W","O"],
+    "anchorDate": "2024-01-01",
+    "squadOffset": 0
+  }
+]

@@ -1,0 +1,27 @@
+[
+  {
+    "squadId": 1,
+    "squadName": "Squad A",
+    "displayOrder": 1
+  },
+  {
+    "squadId": 2,
+    "squadName": "Squad B",
+    "displayOrder": 2
+  },
+  {
+    "squadId": 3,
+    "squadName": "Squad C",
+    "displayOrder": 3
+  },
+  {
+    "squadId": 4,
+    "squadName": "Squad D",
+    "displayOrder": 4
+  },
+  {
+    "squadId": 5,
+    "squadName": "Squad E",
+    "displayOrder": 5
+  }
+]

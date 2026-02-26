@@ -1,0 +1,142 @@
+[
+  {
+    "entryId": 1,
+    "categoryId": "penal",
+    "sectionNumber": "PL 120.00",
+    "title": "Assault in the third degree",
+    "bodyText": "A person is guilty of assault in the third degree when: 1. With intent to cause physical injury to another person, he causes such injury to such person or to a third person; or 2. He recklessly causes physical injury to another person; or 3. With criminal negligence, he causes physical injury to another person by means of a deadly weapon or a dangerous instrument."
+  },
+  {
+    "entryId": 2,
+    "categoryId": "penal",
+    "sectionNumber": "PL 120.05",
+    "title": "Assault in the second degree",
+    "bodyText": "A person is guilty of assault in the second degree when: 1. With intent to cause serious physical injury to another person, he causes such injury to such person or to a third person; or 2. With intent to cause physical injury to another person, he causes such injury to such person or to a third person by means of a deadly weapon or a dangerous instrument."
+  },
+  {
+    "entryId": 3,
+    "categoryId": "penal",
+    "sectionNumber": "PL 140.10",
+    "title": "Criminal trespass in the third degree",
+    "bodyText": "A person is guilty of criminal trespass in the third degree when he knowingly enters or remains unlawfully in a building or upon real property."
+  },
+  {
+    "entryId": 4,
+    "categoryId": "penal",
+    "sectionNumber": "PL 140.15",
+    "title": "Criminal trespass in the second degree",
+    "bodyText": "A person is guilty of criminal trespass in the second degree when he knowingly enters or remains unlawfully in a dwelling."
+  },
+  {
+    "entryId": 5,
+    "categoryId": "penal",
+    "sectionNumber": "PL 155.25",
+    "title": "Petit larceny",
+    "bodyText": "A person is guilty of petit larceny when he steals property. Petit larceny is a class A misdemeanor."
+  },
+  {
+    "entryId": 6,
+    "categoryId": "penal",
+    "sectionNumber": "PL 155.30",
+    "title": "Grand larceny in the fourth degree",
+    "bodyText": "A person is guilty of grand larceny in the fourth degree when he steals property and when: 1. The value of the property exceeds one thousand dollars; or 2. The property consists of a public record, writing or instrument kept, filed or deposited according to law with or in the keeping of any public office or public servant."
+  },
+  {
+    "entryId": 7,
+    "categoryId": "penal",
+    "sectionNumber": "PL 160.05",
+    "title": "Robbery in the third degree",
+    "bodyText": "A person is guilty of robbery in the third degree when he forcibly steals property. Robbery in the third degree is a class D felony."
+  },
+  {
+    "entryId": 8,
+    "categoryId": "penal",
+    "sectionNumber": "PL 160.10",
+    "title": "Robbery in the second degree",
+    "bodyText": "A person is guilty of robbery in the second degree when he forcibly steals property and when: 1. He is aided by another person actually present; or 2. In the course of the commission of the crime or of immediate flight therefrom, he or another participant in the crime displays what appears to be a pistol, revolver, rifle, shotgun, machine gun or other firearm."
+  },
+  {
+    "entryId": 9,
+    "categoryId": "penal",
+    "sectionNumber": "PL 221.05",
+    "title": "Unlawful possession of marihuana",
+    "bodyText": "A person is guilty of unlawful possession of marihuana when he knowingly and unlawfully possesses marihuana. Unlawful possession of marihuana is a violation punishable only by a fine of not more than one hundred dollars."
+  },
+  {
+    "entryId": 10,
+    "categoryId": "penal",
+    "sectionNumber": "PL 240.20",
+    "title": "Disorderly conduct",
+    "bodyText": "A person is guilty of disorderly conduct when, with intent to cause public inconvenience, annoyance or alarm, or recklessly creating a risk thereof: 1. He engages in fighting or in violent, tumultuous or threatening behavior; or 2. He makes unreasonable noise; or 3. In a public place, he uses abusive or obscene language, or makes an obscene gesture."
+  },
+  {
+    "entryId": 11,
+    "categoryId": "cpl",
+    "sectionNumber": "CPL 1.20",
+    "title": "Definitions of terms of general use",
+    "bodyText": "Definitions of terms of general use in this chapter: 1. 'Accusatory instrument' means an indictment, an information, a simplified information, a prosecutor's information, a superior court information, a misdemeanor complaint or a felony complaint."
+  },
+  {
+    "entryId": 12,
+    "categoryId": "cpl",
+    "sectionNumber": "CPL 140.10",
+    "title": "Arrest without a warrant; by police officer",
+    "bodyText": "A police officer may arrest a person for: 1. Any offense when he has reasonable cause to believe that such person has committed such offense in his presence; and 2. A crime when he has reasonable cause to believe that such person has committed such crime, whether in his presence or otherwise."
+  },
+  {
+    "entryId": 13,
+    "categoryId": "cpl",
+    "sectionNumber": "CPL 140.25",
+    "title": "Manner of making arrest",
+    "bodyText": "An arrest is made by an actual restraint of the person to be arrested, or by his submission to the custody of the person making the arrest. The person making the arrest must inform the person being arrested of his authority and the reason for the arrest, unless he encounters physical resistance, flight or other factors rendering such procedure impractical."
+  },
+  {
+    "entryId": 14,
+    "categoryId": "cpl",
+    "sectionNumber": "CPL 160.50",
+    "title": "Fingerprinting; duties of police with respect thereto",
+    "bodyText": "Following an arrest, or after the arraignment of a defendant who has not been arrested, the police officer or agency having custody of the defendant must take or cause to be taken fingerprints of the defendant if he is charged with a felony or a misdemeanor defined in the penal law."
+  },
+  {
+    "entryId": 15,
+    "categoryId": "vtl",
+    "sectionNumber": "VTL 1192",
+    "title": "Operating a motor vehicle while under the influence",
+    "bodyText": "No person shall operate a motor vehicle while the person is in an intoxicated condition or while the person's ability to operate such motor vehicle is impaired by the consumption of alcohol."
+  },
+  {
+    "entryId": 16,
+    "categoryId": "vtl",
+    "sectionNumber": "VTL 1180",
+    "title": "Speeding",
+    "bodyText": "No person shall drive a vehicle at a speed greater than is reasonable and prudent under the conditions and having regard to the actual and potential hazards then existing."
+  },
+  {
+    "entryId": 17,
+    "categoryId": "vtl",
+    "sectionNumber": "VTL 511",
+    "title": "Suspension and revocation of licenses",
+    "bodyText": "The commissioner may suspend or revoke any license issued under this chapter for any of the following reasons: conviction of a crime; violation of any provision of this chapter; or any other sufficient reason."
+  },
+  {
+    "entryId": 18,
+    "categoryId": "vtl",
+    "sectionNumber": "VTL 1212",
+    "title": "Reckless driving",
+    "bodyText": "Reckless driving shall mean driving or using any motor vehicle in a manner which unreasonably interferes with the free and proper use of the public highway, or unreasonably endangers users of the public highway."
+  },
+  {
+    "entryId": 19,
+    "categoryId": "admin",
+    "sectionNumber": "AC 10-125",
+    "title": "Prohibited acts",
+    "bodyText": "It shall be unlawful for any person to make, possess, sell or offer for sale any instrument or device which is designed or commonly used for the purpose of committing a crime."
+  },
+  {
+    "entryId": 20,
+    "categoryId": "admin",
+    "sectionNumber": "AC 16-118",
+    "title": "Littering prohibited",
+    "bodyText": "No person shall litter, sweep, throw or cast, or direct, suffer or permit any servant, agent, employee or other person under his or her control, to litter, sweep, throw or cast any ashes, garbage, paper, dust or other rubbish or refuse of any kind whatsoever, in or upon any street or public place."
+  }
+]
