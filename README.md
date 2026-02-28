@@ -44,7 +44,7 @@ A modern Next.js web application for finding NYPD precincts, exploring sectors, 
 
    The `.env.local` file is already created with default values:
    ```
-   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=AIzaSyAy6Un1PzgY5BgUNwgbch9dES5yE9En96I
+   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=AI
    NEXT_PUBLIC_CHAT_API_URL=http://localhost:3002
    ```
 
