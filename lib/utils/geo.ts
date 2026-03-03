@@ -1,22 +1,6 @@
 // Utility functions for geolocation and geocoding
 import type { LatLng } from '@/types';
 
-const NYC_BOUNDS = {
-  minLat: 40.49,
-  maxLat: 40.92,
-  minLng: -74.26,
-  maxLng: -73.70,
-};
-
-function isWithinNYC(lat: number, lng: number): boolean {
-  return (
-    lat >= NYC_BOUNDS.minLat &&
-    lat <= NYC_BOUNDS.maxLat &&
-    lng >= NYC_BOUNDS.minLng &&
-    lng <= NYC_BOUNDS.maxLng
-  );
-}
-
 export async function reverseGeocode(lat: number, lng: number): Promise<string | null> {
   try {
     const response = await fetch(
@@ -35,25 +19,40 @@ export async function reverseGeocode(lat: number, lng: number): Promise<string |
   }
 }
 
+/** Result when searching for a place by name (building, hall, event, address). */
+export interface PlaceSearchResult {
+  latitude: number;
+  longitude: number;
+  name: string;
+  address: string;
+}
+
+/**
+ * Search for any place in NYC (building, hall, event, landmark) using Google Places Text Search.
+ * Use this for Google Maps–style search: user types anything and we show that location.
+ */
+export async function searchPlaceInNYC(query: string): Promise<PlaceSearchResult | null> {
+  try {
+    const res = await fetch(`/api/place-search?q=${encodeURIComponent(query.trim())}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.result ?? null;
+  } catch (e) {
+    console.error('[PlaceSearch] Error:', e);
+    return null;
+  }
+}
+
 export async function geocodeAddress(address: string): Promise<LatLng | null> {
   try {
-    const nycQuery = address.toLowerCase().includes('new york') ? address : `${address}, New York City, NY`;
+    const primaryQuery = address.trim();
     const response = await fetch(
-      `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(nycQuery)}&bounds=40.49,-74.26|40.92,-73.70&components=country:US|administrative_area:NY&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`
+      `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(primaryQuery)}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`
     );
     const data = await response.json();
 
     if (data.results && data.results.length > 0) {
-      const nycResult = data.results.find((result: any) => {
-        const loc = result?.geometry?.location;
-        if (!loc) return false;
-        return isWithinNYC(loc.lat, loc.lng);
-      }) || data.results[0];
-
-      const location = nycResult.geometry.location;
-      if (!isWithinNYC(location.lat, location.lng)) {
-        return null;
-      }
+      const location = data.results[0].geometry.location;
 
       return {
         latitude: location.lat,
@@ -125,6 +124,19 @@ export function calculateDistance(lat1: number, lon1: number, lat2: number, lon2
     Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
+}
+
+/** Returns distance in km/mi and estimated drive time in minutes (assumes ~25 mph / 40 km/h in city). */
+export function getDistanceAndDriveTime(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+): { distanceKm: number; distanceMi: number; estimatedDriveMin: number } {
+  const distanceKm = calculateDistance(lat1, lon1, lat2, lon2);
+  const distanceMi = distanceKm * 0.621371;
+  const estimatedDriveMin = Math.round((distanceKm / 40) * 60); // ~40 km/h average
+  return { distanceKm, distanceMi, estimatedDriveMin };
 }
 
 function toRad(degrees: number): number {

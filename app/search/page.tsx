@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from '@/components/ThemeProvider';
 import { useAppContext } from '@/lib/context/AppContext';
@@ -15,13 +15,12 @@ import {
 import { findSectorAtLocation, getSectorsForPrecinct } from '@/lib/db/sectorRepository';
 import { getRecentSearches, addRecentSearch, clearRecentSearches } from '@/lib/db/searchRepository';
 import { getHome, getWork } from '@/lib/db/homeWorkRepository';
-import { geocodeAddress, reverseGeocode, findNearbyNYPDPrecinct } from '@/lib/utils/geo';
+import { geocodeAddress, searchPlaceInNYC, findNearbyNYPDPrecinct } from '@/lib/utils/geo';
 import type { Precinct, RecentSearch, SavedPlace } from '@/types';
 import {
   Search as SearchIcon,
   MapPin,
   Clock,
-  Trash2,
   Home as HomeIcon,
   Briefcase,
   Shield,
@@ -44,6 +43,12 @@ const BOROUGH_ICONS: Record<string, any> = {
 
 const QUICK_BOROUGHS = ['Manhattan', 'Brooklyn', 'Bronx', 'Queens', 'Staten Island'];
 const QUICK_POPULAR = ['Midtown', '1st Precinct', '60th Precinct', '40th Precinct'];
+
+interface PlaceSuggestion {
+  description: string;
+  mainText?: string;
+  secondaryText?: string;
+}
 
 export default function SearchPage() {
   const { theme } = useTheme();
@@ -68,6 +73,11 @@ export default function SearchPage() {
   const [workPlace, setWorkPlace] = useState<SavedPlace | null>(null);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [placeSuggestions, setPlaceSuggestions] = useState<PlaceSuggestion[]>([]);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [activeSuggestion, setActiveSuggestion] = useState(-1);
+  const suggestionsHideTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     loadData();
@@ -104,6 +114,36 @@ export default function SearchPage() {
     );
   }, [query, allPrecincts]);
 
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 2) {
+      setPlaceSuggestions([]);
+      setSuggestionsLoading(false);
+      return;
+    }
+
+    const timer = window.setTimeout(async () => {
+      try {
+        setSuggestionsLoading(true);
+        const response = await fetch(`/api/place-suggest?q=${encodeURIComponent(q)}`);
+        if (!response.ok) {
+          setPlaceSuggestions([]);
+          return;
+        }
+        const data = await response.json();
+        setPlaceSuggestions(Array.isArray(data?.suggestions) ? data.suggestions : []);
+      } catch {
+        setPlaceSuggestions([]);
+      } finally {
+        setSuggestionsLoading(false);
+      }
+    }, 220);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [query]);
+
   const handleSelect = async (precinct: Precinct) => {
     const point = {
       latitude: precinct.stationLat ?? precinct.centroidLat,
@@ -125,56 +165,48 @@ export default function SearchPage() {
     router.push('/map');
   };
 
-  const handleAddressSearch = async () => {
-    if (!query.trim() || geocoding) return;
+  const handleAddressSearch = async (forcedQuery?: string) => {
+    const effectiveQuery = forcedQuery ?? query;
+    if (!effectiveQuery.trim() || geocoding) return;
     setGeocoding(true);
 
     try {
-      const searchQuery = query.trim();
-      const geocoded = await geocodeAddress(searchQuery);
+      const searchQuery = effectiveQuery.trim();
+      let point: { latitude: number; longitude: number };
+      let displayName: string;
 
-      if (!geocoded) {
-        showToastMessage('Could not locate that address. Try a more specific NYC address (e.g. "123 Broadway, Manhattan").');
-        setGeocoding(false);
-        return;
+      // 1) Try Places search first (building, hall, event, landmark – like Google Maps)
+      const placeResult = await searchPlaceInNYC(searchQuery);
+      if (placeResult) {
+        point = { latitude: placeResult.latitude, longitude: placeResult.longitude };
+        displayName = placeResult.address || placeResult.name || searchQuery;
+      } else {
+        // 2) Fallback: address geocoding
+        const geocoded = await geocodeAddress(searchQuery);
+        if (!geocoded) {
+          showToastMessage('Could not find that place. Try a NYC address or place name (e.g. "Madison Square Garden", "123 Broadway").');
+          setGeocoding(false);
+          return;
+        }
+        point = geocoded;
+        displayName = searchQuery;
       }
 
-      const { latitude, longitude } = geocoded;
-      const point = { latitude, longitude };
+      const { latitude, longitude } = point;
 
-      // Ask Google which NYPD precinct covers this location
+      // Nearest precinct (always show in details: name, address, distance, min)
       let precinct = null;
       const nearbyNum = await findNearbyNYPDPrecinct(latitude, longitude);
-      if (nearbyNum) {
-        precinct = await getPrecinctByNumber(nearbyNum);
-      }
-
-      if (!precinct) {
-        precinct = await findPrecinctAtLocation(point);
-      }
-
-      // Fallback to nearest centroid if Google didn't find one
-      if (!precinct) {
-        precinct = await findNearestPrecinct(point);
-      }
-      const sector = await findSectorAtLocation(point);
-
-      if (!precinct) {
-        showToastMessage('This address does not appear to be within an NYC precinct boundary. Try a more specific address.');
-        setGeocoding(false);
-        return;
-      }
-
-      const displayPoint = {
-        latitude: precinct.stationLat ?? point.latitude,
-        longitude: precinct.stationLng ?? point.longitude,
-      };
+      if (nearbyNum) precinct = await getPrecinctByNumber(nearbyNum);
+      if (!precinct) precinct = await findPrecinctAtLocation(point);
+      if (!precinct) precinct = await findNearestPrecinct(point);
+      const sector = precinct ? await findSectorAtLocation(point) : null;
 
       await addRecentSearch({
         queryText: searchQuery,
-        displayAddress: searchQuery,
-        latitude: displayPoint.latitude,
-        longitude: displayPoint.longitude,
+        displayAddress: displayName,
+        latitude: point.latitude,
+        longitude: point.longitude,
         timestamp: Date.now(),
       });
       const recent = await getRecentSearches();
@@ -182,12 +214,13 @@ export default function SearchPage() {
 
       setSelectedPrecinct(precinct);
       setSelectedSector(sector);
-      setSearchedAddress(searchQuery);
-      setSearchedLocation(displayPoint);
+      setSearchedAddress(displayName);
+      setSearchedLocation(point);
+      setShowSuggestions(false);
       setGeocoding(false);
       router.push('/map');
     } catch (err) {
-      showToastMessage('Failed to search address. Please check your internet connection and try again.');
+      showToastMessage('Failed to search. Please check your internet connection and try again.');
       setGeocoding(false);
     }
   };
@@ -214,14 +247,10 @@ export default function SearchPage() {
       }
       const sector = await findSectorAtLocation(point);
       if (precinct) {
-        const displayPoint = {
-          latitude: precinct.stationLat ?? point.latitude,
-          longitude: precinct.stationLng ?? point.longitude,
-        };
         setSelectedPrecinct(precinct);
         setSelectedSector(sector);
         setSearchedAddress(search.displayAddress);
-        setSearchedLocation(displayPoint);
+        setSearchedLocation({ latitude: search.latitude, longitude: search.longitude });
         router.push('/map');
       } else {
         showToastMessage('Could not find a precinct for this recent search.');
@@ -263,7 +292,18 @@ export default function SearchPage() {
 
   const applyQuickSearch = (term: string) => {
     setQuery(term);
+    setShowSuggestions(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSuggestionSelect = async (suggestion: PlaceSuggestion) => {
+    if (suggestionsHideTimerRef.current) {
+      window.clearTimeout(suggestionsHideTimerRef.current);
+    }
+    setQuery(suggestion.description);
+    setShowSuggestions(false);
+    setActiveSuggestion(-1);
+    await handleAddressSearch(suggestion.description);
   };
 
   return (
@@ -299,7 +339,7 @@ export default function SearchPage() {
             Search
           </h1>
           <p className="text-sm" style={{ color: colors.textSecondary }}>
-            Find precincts by name, address, or borough
+            Search like Google Maps – any place, then see nearest precinct and distance
           </p>
         </div>
 
@@ -315,23 +355,90 @@ export default function SearchPage() {
             <input
               type="text"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setShowSuggestions(true);
+                setActiveSuggestion(-1);
+              }}
+              onFocus={() => {
+                if (query.trim().length >= 2) setShowSuggestions(true);
+              }}
+              onBlur={() => {
+                suggestionsHideTimerRef.current = window.setTimeout(() => {
+                  setShowSuggestions(false);
+                  setActiveSuggestion(-1);
+                }, 120);
+              }}
               onKeyDown={(e) => {
+                if (e.key === 'ArrowDown' && placeSuggestions.length > 0) {
+                  e.preventDefault();
+                  setActiveSuggestion((prev) => (prev + 1) % placeSuggestions.length);
+                  return;
+                }
+                if (e.key === 'ArrowUp' && placeSuggestions.length > 0) {
+                  e.preventDefault();
+                  setActiveSuggestion((prev) => (prev <= 0 ? placeSuggestions.length - 1 : prev - 1));
+                  return;
+                }
                 if (e.key === 'Enter') {
+                  if (activeSuggestion >= 0 && placeSuggestions[activeSuggestion]) {
+                    e.preventDefault();
+                    handleSuggestionSelect(placeSuggestions[activeSuggestion]);
+                    return;
+                  }
                   if (results.length > 0) handleSelect(results[0]);
                   else if (query.trim()) handleAddressSearch();
                 }
               }}
-              placeholder="Search by name, address, borough..."
+              placeholder="Search any place – building, hall, event, address..."
               className="flex-1 bg-transparent outline-none text-sm font-semibold"
               style={{ color: colors.textPrimary }}
             />
             {geocoding && <Loader2 className="animate-spin" size={20} style={{ color: colors.accent }} />}
           </div>
 
+          {showSuggestions && query.trim().length >= 2 && (
+            <div
+              className="mt-2 rounded-xl overflow-hidden"
+              style={{
+                backgroundColor: colors.surface,
+                border: `1px solid ${colors.cardBorder}`,
+              }}
+            >
+              {placeSuggestions.map((s, idx) => (
+                <button
+                  key={`${s.description}-${idx}`}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => handleSuggestionSelect(s)}
+                  className="w-full text-left px-4 py-3 transition-colors border-b last:border-b-0"
+                  style={{
+                    borderColor: colors.cardBorder,
+                    backgroundColor: idx === activeSuggestion ? colors.card : 'transparent',
+                  }}
+                >
+                  <p className="text-sm font-semibold" style={{ color: colors.textPrimary }}>
+                    {s.mainText || s.description}
+                  </p>
+                  {s.secondaryText && (
+                    <p className="text-xs mt-0.5" style={{ color: colors.textTertiary }}>
+                      {s.secondaryText}
+                    </p>
+                  )}
+                </button>
+              ))}
+
+              {!placeSuggestions.length && suggestionsLoading && (
+                <div className="px-4 py-3 flex items-center gap-2">
+                  <Loader2 className="animate-spin" size={14} style={{ color: colors.textTertiary }} />
+                  <p className="text-xs" style={{ color: colors.textTertiary }}>Loading suggestions...</p>
+                </div>
+              )}
+            </div>
+          )}
+
           {query.trim() && !results.length && (
             <button
-              onClick={handleAddressSearch}
+              onClick={() => handleAddressSearch()}
               disabled={geocoding}
               className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold transition-all hover:scale-105 disabled:opacity-50"
               style={{
@@ -347,7 +454,7 @@ export default function SearchPage() {
               ) : (
                 <>
                   <MapPin size={18} />
-                  Search Address: &quot;{query}&quot;
+                  Search: &quot;{query}&quot;
                 </>
               )}
             </button>

@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useTheme } from '@/components/ThemeProvider';
 import { useAppContext } from '@/lib/context/AppContext';
 import { Colors } from '@/lib/theme/colors';
 import { isFavorited, upsertFavorite, removeFavorite } from '@/lib/db/database';
 import { findSectorAtLocation } from '@/lib/db/sectorRepository';
+import { getDistanceAndDriveTime } from '@/lib/utils/geo';
 import {
   X,
   Phone,
@@ -15,6 +16,7 @@ import {
   Copy,
   ExternalLink,
   Shield,
+  Clock,
 } from 'lucide-react';
 
 export default function PrecinctInfoSheet() {
@@ -55,6 +57,19 @@ export default function PrecinctInfoSheet() {
   }, [selectedPrecinct, selectedSector, searchedLocation, setSelectedSector]);
 
   if (!selectedPrecinct) return null;
+
+  // Distance from searched location to precinct (station or centroid)
+  const distanceInfo = useMemo(() => {
+    if (!searchedLocation?.latitude || !searchedLocation?.longitude) return null;
+    const stationLat = selectedPrecinct.stationLat ?? selectedPrecinct.centroidLat;
+    const stationLng = selectedPrecinct.stationLng ?? selectedPrecinct.centroidLng;
+    return getDistanceAndDriveTime(
+      searchedLocation.latitude,
+      searchedLocation.longitude,
+      stationLat,
+      stationLng
+    );
+  }, [searchedLocation, selectedPrecinct]);
 
   const handleClose = () => {
     setSelectedPrecinct(null);
@@ -157,6 +172,38 @@ export default function PrecinctInfoSheet() {
 
         {/* Content */}
         <div className="p-4 space-y-4 max-h-64 overflow-y-auto">
+          {/* Searched location (when user searched an address) */}
+          {searchedAddress && searchedLocation && (
+            <div className="flex items-start gap-3 p-3 rounded-xl" style={{ backgroundColor: colors.card }}>
+              <MapPin size={18} style={{ color: colors.accent }} className="mt-0.5 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-black uppercase tracking-wider" style={{ color: colors.textTertiary }}>
+                  Searched location
+                </p>
+                <p className="text-sm font-bold mt-1" style={{ color: colors.textPrimary }}>
+                  {searchedAddress}
+                </p>
+                {distanceInfo && (
+                  <p className="text-xs font-semibold mt-2 flex items-center gap-1" style={{ color: colors.accent }}>
+                    <Clock size={12} />
+                    {distanceInfo.distanceKm < 1
+                      ? `${(distanceInfo.distanceKm * 1000).toFixed(0)} m away`
+                      : `${distanceInfo.distanceKm.toFixed(1)} km (${distanceInfo.distanceMi.toFixed(1)} mi) away`}
+                    {' · '}
+                    ~{distanceInfo.estimatedDriveMin} min drive to precinct
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Nearest precinct heading when we have a searched location */}
+          {searchedLocation && (
+            <p className="text-xs font-black uppercase tracking-wider" style={{ color: colors.textTertiary }}>
+              Nearest precinct
+            </p>
+          )}
+
           {/* Sector */}
           <div className="flex items-start gap-3">
             <Shield size={18} style={{ color: colors.accent }} className="mt-1 flex-shrink-0" />
@@ -180,11 +227,6 @@ export default function PrecinctInfoSheet() {
               <p className="text-sm font-bold" style={{ color: colors.textPrimary }}>
                 {selectedPrecinct.address}
               </p>
-              {searchedAddress && (
-                <p className="text-xs mt-1" style={{ color: colors.textTertiary }}>
-                  📍 {searchedAddress}
-                </p>
-              )}
             </div>
             <button
               onClick={handleCopyAddress}

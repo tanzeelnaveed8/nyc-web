@@ -107,3 +107,18 @@ export interface UserPreference {
 }
 
 export type MapType = 'standard' | 'satellite' | 'terrain';
+
+/** RDO calendar format (e.g. rdocalendar.com) – no precinct, groups + flags per day */
+export interface RdoCalendarDay {
+  group: string;
+  flags: string[];
+}
+
+export interface RdoCalendarYear {
+  source: string;
+  role: string;
+  year: number;
+  groups: string[];
+  days: Record<string, RdoCalendarDay>;
+  legend: Record<string, string>;
+}

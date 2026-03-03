@@ -46,6 +46,7 @@ export default function MapComponent() {
   const markersRef = useRef<google.maps.Marker[]>([]);
   const polygonsRef = useRef<google.maps.Polygon[]>([]);
   const activeMarkerRef = useRef<google.maps.Marker | null>(null);
+  const precinctMarkerRef = useRef<google.maps.Marker | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [mapReady, setMapReady] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
@@ -271,41 +272,59 @@ export default function MapComponent() {
     getPrecinctFocusPoint,
   ]);
 
-  // Show a single active marker (red) to avoid duplicate markers
+  // Show markers: searched location (red), and precinct (blue) when different from searched
   useEffect(() => {
     if (!googleMapRef.current || !mapReady) return;
 
-    // Clear previous marker
+    // Clear previous markers
     if (activeMarkerRef.current) {
       activeMarkerRef.current.setMap(null);
       activeMarkerRef.current = null;
     }
-
-    let markerPosition: { lat: number; lng: number } | null = null;
-    let markerTitle = 'Selected Location';
-
-    if (isValidPoint(searchedLocation)) {
-      markerPosition = { lat: searchedLocation.latitude, lng: searchedLocation.longitude };
-      markerTitle = searchedAddress || 'Searched Location';
-    } else {
-      const focusPoint = getPrecinctFocusPoint(selectedPrecinct);
-      if (focusPoint) {
-        markerPosition = focusPoint;
-        markerTitle = selectedPrecinct ? `Precinct ${selectedPrecinct.precinctNum}` : 'Selected Location';
-      }
+    if (precinctMarkerRef.current) {
+      precinctMarkerRef.current.setMap(null);
+      precinctMarkerRef.current = null;
     }
 
-    if (markerPosition) {
-      const marker = new google.maps.Marker({
-        position: markerPosition,
-        map: googleMapRef.current,
-        title: markerTitle,
-        icon: {
-          url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
-        },
+    const map = googleMapRef.current;
+
+    // 1) Searched location marker (red) – user's searched address
+    if (isValidPoint(searchedLocation)) {
+      activeMarkerRef.current = new google.maps.Marker({
+        position: { lat: searchedLocation.latitude, lng: searchedLocation.longitude },
+        map,
+        title: searchedAddress || 'Searched location',
+        icon: { url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png' },
+        zIndex: 1001,
+      });
+    }
+
+    // 2) Precinct marker (blue) – when we have both searched location and precinct and they differ
+    const precinctFocus = getPrecinctFocusPoint(selectedPrecinct);
+    const showPrecinctMarker =
+      selectedPrecinct &&
+      precinctFocus &&
+      isValidPoint(searchedLocation) &&
+      (Math.abs(searchedLocation.latitude - precinctFocus.lat) > 1e-5 ||
+        Math.abs(searchedLocation.longitude - precinctFocus.lng) > 1e-5);
+
+    if (showPrecinctMarker && precinctFocus) {
+      precinctMarkerRef.current = new google.maps.Marker({
+        position: precinctFocus,
+        map,
+        title: `Precinct ${selectedPrecinct!.precinctNum} – ${selectedPrecinct!.address}`,
+        icon: { url: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png' },
         zIndex: 1000,
       });
-      activeMarkerRef.current = marker;
+    } else if (!isValidPoint(searchedLocation) && precinctFocus) {
+      // No search: single marker at precinct
+      activeMarkerRef.current = new google.maps.Marker({
+        position: precinctFocus,
+        map,
+        title: selectedPrecinct ? `Precinct ${selectedPrecinct.precinctNum}` : 'Selected Location',
+        icon: { url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png' },
+        zIndex: 1000,
+      });
     }
   }, [selectedPrecinct, searchedLocation, searchedAddress, colors, mapReady, isValidPoint, getPrecinctFocusPoint]);
 
