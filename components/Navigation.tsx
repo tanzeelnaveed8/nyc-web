@@ -48,19 +48,19 @@ export default function Navigation() {
         borderColor: colors.cardBorder,
       }}
     >
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-5 lg:px-4">
+        <div className="flex items-center justify-between h-14 sm:h-16">
           {/* Logo */}
-          <Link href="/map" className="flex items-center gap-2">
+          <Link href="/map" className="flex items-center gap-2 shrink-0">
             <Image
               src="/icon.png"
               alt="NYC Precinct"
               width={40}
               height={40}
-              className="rounded-md object-cover"
+              className="w-8 h-8 sm:w-10 sm:h-10 rounded-md object-cover"
             />
             <span
-              className="text-xl font-black"
+              className="hidden sm:block text-lg md:text-base lg:text-xl font-black whitespace-nowrap"
               style={{ color: colors.textPrimary }}
             >
               NYC Precinct
@@ -68,7 +68,7 @@ export default function Navigation() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden lg:flex items-center gap-1">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = pathname === tab.path;
@@ -102,6 +102,30 @@ export default function Navigation() {
             </button>
           </div>
 
+          {/* Tablet Navigation */}
+          <div className="hidden md:flex lg:hidden items-center gap-1 overflow-x-auto whitespace-nowrap px-1">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = pathname === tab.path;
+
+              return (
+                <Link
+                  key={tab.path}
+                  href={tab.path}
+                  title={tab.name}
+                  className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg transition-all shrink-0"
+                  style={{
+                    backgroundColor: isActive ? colors.accent : 'transparent',
+                    color: isActive ? colors.onAccentContrast : colors.textSecondary,
+                  }}
+                >
+                  <Icon size={16} />
+                  <span className="text-xs font-semibold">{tab.name}</span>
+                </Link>
+              );
+            })}
+          </div>
+
           {/* Mobile Theme Toggle */}
           <button
             onClick={toggleTheme}
@@ -118,7 +142,7 @@ export default function Navigation() {
 
       {/* Mobile Bottom Navigation */}
       <div
-        className="md:hidden fixed bottom-0 left-0 right-0 border-t"
+        className="md:hidden fixed bottom-0 left-0 right-0 border-t pb-[env(safe-area-inset-bottom)]"
         style={{
           backgroundColor: colors.surface,
           borderColor: colors.cardBorder,

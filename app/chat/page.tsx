@@ -84,18 +84,49 @@ export default function ChatPage() {
         setLocationError('Could not get your location. Please enable location access.');
       }
 
-      // Call backend API
-      const response = await fetch(`${process.env.NEXT_PUBLIC_CHAT_API_URL}/api/chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: userMessage.content,
-          latitude: location?.latitude,
-          longitude: location?.longitude,
-        }),
-      });
+      const payload = {
+        message: userMessage.content,
+        latitude: location?.latitude,
+        longitude: location?.longitude,
+      };
+
+      const chatApiBase = process.env.NEXT_PUBLIC_CHAT_API_URL?.trim();
+      const primaryEndpoint = chatApiBase ? `${chatApiBase}/api/chat` : '/api/chat';
+      const fallbackEndpoint = '/api/chat';
+
+      let response: Response;
+      try {
+        response = await fetch(primaryEndpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+      } catch (primaryError) {
+        if (primaryEndpoint !== fallbackEndpoint) {
+          console.warn('[Chat] Primary endpoint failed, falling back to local API:', primaryError);
+          response = await fetch(fallbackEndpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          });
+        } else {
+          throw primaryError;
+        }
+      }
+
+      if (!response.ok && primaryEndpoint !== fallbackEndpoint) {
+        response = await fetch(fallbackEndpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+      }
 
       if (!response.ok) {
         throw new Error('Failed to get response');
@@ -117,7 +148,7 @@ export default function ChatPage() {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: 'Sorry, I encountered an error. Please make sure the backend server is running at http://localhost:3002 and try again.',
+        content: 'Sorry, I encountered an error while contacting chat service. Please try again in a moment.',
         timestamp: Date.now(),
       };
 

@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import type { Precinct, Sector, LatLng, MapType } from '@/types';
+import { initializeDatabase } from '@/lib/db/database';
 
 interface AppContextType {
   isDark: boolean;
@@ -62,6 +63,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [tourHint, setTourHint] = useState<string | null>(null);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [contextReady, setContextReady] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        await initializeDatabase();
+        if (!cancelled) {
+          setIsDataLoaded(true);
+        }
+      } catch (error) {
+        console.error('[AppContext] Database init error:', error);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Load from sessionStorage on mount
   useEffect(() => {

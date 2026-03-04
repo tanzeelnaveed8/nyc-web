@@ -100,7 +100,18 @@ export default function CalendarPage() {
   const getDaysInMonth = () => new Date(year, month + 1, 0).getDate();
   const getFirstDayOfMonth = () => new Date(year, month, 1).getDay();
 
-  const TODAY_RING = '#2979FF';
+  const TODAY_RING = colors.primary;
+
+  const getGroupColor = (group: string): string => {
+    const byGroup: Record<string, string> = {
+      '1': colors.primary,
+      '2': colors.success,
+      '3': colors.accent,
+      '4': colors.warning,
+      '5': colors.error,
+    };
+    return byGroup[group] || colors.accent;
+  };
 
   const renderCalendar = () => {
     const daysInMonth = getDaysInMonth();
@@ -117,19 +128,32 @@ export default function CalendarPage() {
       const isSelected = selectedDay === day;
       const group = dayData?.group ?? '—';
       const flags = dayData?.flags ?? [];
+      const groupColor = getGroupColor(group);
+
+      const tileShadow = isSelected
+        ? `0 8px 20px ${groupColor}55, inset 0 -2px 0 ${groupColor}AA`
+        : today
+        ? `0 6px 16px ${TODAY_RING}40, inset 0 -2px 0 ${TODAY_RING}80`
+        : theme === 'dark'
+        ? '0 4px 12px rgba(0, 0, 0, 0.35), inset 0 -1px 0 rgba(255,255,255,0.05)'
+        : '0 4px 12px rgba(15, 23, 42, 0.12), inset 0 -1px 0 rgba(0,0,0,0.08)';
 
       days.push(
         <button
           key={day}
           onClick={() => setSelectedDay(day)}
-          className="aspect-square flex flex-col items-center justify-center rounded-lg transition-all hover:opacity-90 cursor-pointer"
+          className="aspect-square flex flex-col items-center justify-center rounded-xl transition-all hover:scale-[1.03] cursor-pointer active:scale-[0.98]"
           style={{
-            backgroundColor: theme === 'dark' ? colors.surface : '#F5F5F5',
+            background:
+              group !== '—'
+                ? `linear-gradient(145deg, ${groupColor}35, ${colors.surface})`
+                : `linear-gradient(145deg, ${colors.surfaceElevated}, ${colors.surface})`,
             border: today
               ? `2.5px solid ${TODAY_RING}`
               : isSelected
-              ? `2px solid ${colors.accent}`
+              ? `2px solid ${groupColor}`
               : `1px solid ${colors.cardBorder}`,
+            boxShadow: tileShadow,
           }}
         >
           <p
@@ -138,7 +162,7 @@ export default function CalendarPage() {
           >
             {day}
           </p>
-          <p className="text-[10px] font-bold mt-0.5" style={{ color: colors.accent }}>
+          <p className="text-[10px] font-bold mt-0.5" style={{ color: groupColor }}>
             G{group}
           </p>
           {flags.length > 0 && (
@@ -148,8 +172,8 @@ export default function CalendarPage() {
                   key={f}
                   className="text-[8px] font-bold px-1 rounded"
                   style={{
-                    backgroundColor: colors.accent + '30',
-                    color: colors.accent,
+                    backgroundColor: groupColor + '35',
+                    color: colors.textPrimary,
                   }}
                 >
                   {f}
@@ -179,7 +203,7 @@ export default function CalendarPage() {
     <div className="flex flex-col min-h-screen" style={{ backgroundColor: colors.background }}>
       <Navigation />
 
-      <main className="flex-1 mt-16 md:mb-0 mb-20 p-4 md:p-6 max-w-4xl mx-auto w-full">
+      <main className="flex-1 mt-16 md:mb-0 mb-20 p-4 md:p-6 max-w-6xl mx-auto w-full">
         {tourHint === 'calendar' && (
           <div
             className="mb-4 p-3 rounded-xl"
@@ -204,7 +228,7 @@ export default function CalendarPage() {
         )}
 
         {/* Header: RDO Calendar > February 2026 */}
-        <div className="mb-6">
+        <div className="mb-4 md:mb-6">
           <div className="flex items-center gap-3">
             <div
               className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -220,7 +244,7 @@ export default function CalendarPage() {
 
         {/* Month Navigation */}
         <div
-          className="p-4 rounded-xl mb-4"
+          className="p-4 rounded-xl mb-4 md:mb-5"
           style={{
             backgroundColor: colors.surface,
             border: `1px solid ${colors.cardBorder}`,
@@ -249,132 +273,168 @@ export default function CalendarPage() {
           </div>
         </div>
 
-        {/* Selected Day Detail */}
-        {selectedDayInfo && (
-          <div
-            className="p-4 rounded-xl mb-4"
-            style={{
-              backgroundColor: colors.surface,
-              border: `1px solid ${colors.cardBorder}`,
-            }}
-          >
-            <div className="flex gap-4">
-              <div
-                className="w-16 h-16 rounded-xl flex flex-col items-center justify-center flex-shrink-0"
-                style={{ backgroundColor: colors.accent + '20' }}
-              >
-                <p className="text-2xl font-black" style={{ color: colors.accent }}>
-                  {selectedDay}
-                </p>
-                <p className="text-[10px] font-bold" style={{ color: colors.accent }}>
-                  {selectedDayInfo.dayShort}
-                </p>
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <p className="text-base font-black" style={{ color: colors.textPrimary }}>
-                  {selectedDayInfo.dayName}
-                </p>
-                <p className="text-xs mb-2" style={{ color: colors.textTertiary }}>
-                  {selectedDayInfo.date}
-                </p>
-                <p className="text-sm font-bold" style={{ color: colors.accent }}>
-                  Group {selectedDayInfo.group}
-                </p>
-                {selectedDayInfo.flags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {selectedDayInfo.flags.map((f) => (
-                      <span
-                        key={f}
-                        className="text-xs font-semibold px-2 py-1 rounded"
-                        style={{
-                          backgroundColor: colors.accent + '25',
-                          color: colors.accent,
-                        }}
-                      >
-                        {f}: {selectedDayInfo.legend[f] ?? f}
-                      </span>
-                    ))}
+        <div className="grid gap-4 md:grid-cols-12 md:gap-5">
+          <div className="md:col-span-8">
+            {/* Calendar Grid */}
+            <div
+              className="p-3 sm:p-4 rounded-xl mb-4"
+              style={{
+                backgroundColor: colors.surface,
+                border: `1px solid ${colors.cardBorder}`,
+              }}
+            >
+              <div className="grid grid-cols-7 gap-1.5 sm:gap-2 mb-2">
+                {WEEKDAYS.map((day, i) => (
+                  <div key={day} className="text-center">
+                    <p
+                      className="text-[11px] sm:text-xs font-bold uppercase tracking-wider"
+                      style={{ color: i === 0 || i === 6 ? colors.error : colors.textTertiary }}
+                    >
+                      {day}
+                    </p>
                   </div>
-                )}
+                ))}
               </div>
+              <div className="h-px mb-2" style={{ backgroundColor: colors.divider }} />
+              <div className="grid grid-cols-7 gap-1.5 sm:gap-2">{renderCalendar()}</div>
             </div>
           </div>
-        )}
 
-        {/* Calendar Grid */}
-        <div
-          className="p-4 rounded-xl mb-4"
-          style={{
-            backgroundColor: colors.surface,
-            border: `1px solid ${colors.cardBorder}`,
-          }}
-        >
-          <div className="grid grid-cols-7 gap-2 mb-2">
-            {WEEKDAYS.map((day, i) => (
-              <div key={day} className="text-center">
-                <p
-                  className="text-xs font-bold uppercase tracking-wider"
-                  style={{ color: i === 0 || i === 6 ? colors.error : colors.textTertiary }}
-                >
-                  {day}
-                </p>
-              </div>
-            ))}
-          </div>
-          <div className="h-px mb-2" style={{ backgroundColor: colors.divider }} />
-          <div className="grid grid-cols-7 gap-2">{renderCalendar()}</div>
-        </div>
-
-        {/* Legend */}
-        {calendarData?.legend && Object.keys(calendarData.legend).length > 0 && (
-          <div
-            className="p-4 rounded-xl"
-            style={{
-              backgroundColor: colors.surface,
-              border: `1px solid ${colors.cardBorder}`,
-            }}
-          >
-            <h3 className="text-xs font-bold mb-3 uppercase tracking-wider" style={{ color: colors.textTertiary }}>
-              Legend
-            </h3>
-            <div className="flex flex-wrap gap-3">
-              {Object.entries(calendarData.legend).map(([flag, label]) => (
-                <div key={flag} className="flex items-center gap-2">
-                  <span
-                    className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold"
+          <div className="md:col-span-4 md:sticky md:top-20 self-start space-y-4">
+            {/* Selected Day Detail */}
+            {selectedDayInfo && (
+              <div
+                className="p-4 rounded-xl"
+                style={{
+                  background: `linear-gradient(140deg, ${getGroupColor(selectedDayInfo.group)}22, ${colors.surface})`,
+                  border: `1px solid ${getGroupColor(selectedDayInfo.group)}66`,
+                  boxShadow: `0 10px 24px ${getGroupColor(selectedDayInfo.group)}30`,
+                }}
+              >
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <div
+                    className="w-16 h-16 rounded-xl flex flex-col items-center justify-center flex-shrink-0"
                     style={{
-                      backgroundColor: colors.accent + '25',
-                      color: colors.accent,
+                      background: `linear-gradient(145deg, ${getGroupColor(selectedDayInfo.group)}40, ${getGroupColor(selectedDayInfo.group)}20)`,
+                      boxShadow: `0 6px 16px ${getGroupColor(selectedDayInfo.group)}40`,
                     }}
                   >
-                    {flag}
-                  </span>
-                  <p className="text-xs font-semibold" style={{ color: colors.textSecondary }}>
-                    {label}
-                  </p>
-                </div>
-              ))}
-              <div className="flex items-center gap-2">
-                <span
-                  className="w-7 h-7 rounded-lg flex items-center justify-center border-2"
-                  style={{ borderColor: TODAY_RING, backgroundColor: 'transparent' }}
-                >
-                  <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: TODAY_RING }} />
-                </span>
-                <p className="text-xs font-semibold" style={{ color: colors.textSecondary }}>
-                  Today
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
+                    <p className="text-2xl font-black" style={{ color: getGroupColor(selectedDayInfo.group) }}>
+                      {selectedDay}
+                    </p>
+                    <p className="text-[10px] font-bold" style={{ color: getGroupColor(selectedDayInfo.group) }}>
+                      {selectedDayInfo.dayShort}
+                    </p>
+                  </div>
 
-        {calendarData?.source && (
-          <p className="text-[10px] mt-3 text-center" style={{ color: colors.textTertiary }}>
-            Source: {calendarData.source} · Role: {calendarData.role}
-          </p>
-        )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-base font-black" style={{ color: colors.textPrimary }}>
+                      {selectedDayInfo.dayName}
+                    </p>
+                    <p className="text-xs mb-2" style={{ color: colors.textTertiary }}>
+                      {selectedDayInfo.date}
+                    </p>
+                    <p className="text-sm font-bold" style={{ color: getGroupColor(selectedDayInfo.group) }}>
+                      Group {selectedDayInfo.group}
+                    </p>
+                    {selectedDayInfo.flags.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {selectedDayInfo.flags.map((f) => (
+                          <span
+                            key={f}
+                            className="text-xs font-semibold px-2 py-1 rounded"
+                            style={{
+                              backgroundColor: getGroupColor(selectedDayInfo.group) + '25',
+                              color: getGroupColor(selectedDayInfo.group),
+                            }}
+                          >
+                            {f}: {selectedDayInfo.legend[f] ?? f}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Legend */}
+            {calendarData?.legend && Object.keys(calendarData.legend).length > 0 && (
+              <div
+                className="p-4 rounded-xl"
+                style={{
+                  background: `linear-gradient(145deg, ${colors.surfaceElevated}, ${colors.surface})`,
+                  border: `1px solid ${colors.outline}`,
+                  boxShadow: theme === 'dark'
+                    ? '0 8px 20px rgba(0,0,0,0.35)'
+                    : '0 8px 20px rgba(15,23,42,0.10)',
+                }}
+              >
+                <h3 className="text-xs font-bold mb-3 uppercase tracking-wider" style={{ color: colors.textTertiary }}>
+                  Legend
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap-3">
+                  {calendarData.groups?.map((groupId) => (
+                    <div key={groupId} className="flex items-center gap-2">
+                      <span
+                        className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold"
+                        style={{
+                          background: `linear-gradient(145deg, ${getGroupColor(groupId)}40, ${getGroupColor(groupId)}20)`,
+                          color: theme === 'dark' ? colors.textPrimary : colors.depth,
+                          boxShadow: `0 4px 10px ${getGroupColor(groupId)}40`,
+                          border: `1px solid ${getGroupColor(groupId)}88`,
+                        }}
+                      >
+                        G{groupId}
+                      </span>
+                      <p className="text-xs font-semibold" style={{ color: colors.textPrimary }}>
+                        Squad Group {groupId}
+                      </p>
+                    </div>
+                  ))}
+                  {Object.entries(calendarData.legend).map(([flag, label]) => (
+                    <div key={flag} className="flex items-center gap-2">
+                      <span
+                        className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold"
+                        style={{
+                          background: `linear-gradient(145deg, ${colors.accent}40, ${colors.accent}20)`,
+                          color: theme === 'dark' ? colors.textPrimary : colors.depth,
+                          border: `1px solid ${colors.accent}88`,
+                        }}
+                      >
+                        {flag}
+                      </span>
+                      <p className="text-xs font-semibold" style={{ color: colors.textPrimary }}>
+                        {label}
+                      </p>
+                    </div>
+                  ))}
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="w-7 h-7 rounded-lg flex items-center justify-center border-2"
+                      style={{
+                        borderColor: TODAY_RING,
+                        background: `linear-gradient(145deg, ${TODAY_RING}30, ${TODAY_RING}12)`,
+                        boxShadow: `0 4px 10px ${TODAY_RING}40`,
+                      }}
+                    >
+                      <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: TODAY_RING }} />
+                    </span>
+                    <p className="text-xs font-semibold" style={{ color: colors.textPrimary }}>
+                      Today
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {calendarData?.source && (
+              <p className="text-[10px] text-center md:text-left px-1" style={{ color: colors.textTertiary }}>
+                Source: {calendarData.source} · Role: {calendarData.role}
+              </p>
+            )}
+          </div>
+        </div>
       </main>
     </div>
   );

@@ -50,108 +50,126 @@ export async function initializeDatabase() {
         Number.isFinite(sample.stationLng);
 
       if (hasValidSeed) {
-        console.log('[DB] Already initialized');
-        return;
+        console.log('[DB] Precinct seed already initialized');
+      } else {
+        // Rebuild corrupted seed data (older bug created precinctNum=0 / NaN centroid)
+        console.warn('[DB] Detected invalid precinct seed data, rebuilding...');
+        await db.transaction('rw', db.precincts, db.recentSearches, db.favorites, db.savedPlaces, async () => {
+          await db.precincts.clear();
+          await db.recentSearches.clear();
+          await db.favorites.clear();
+          await db.savedPlaces.clear();
+        });
       }
-
-      // Rebuild corrupted seed data (older bug created precinctNum=0 / NaN centroid)
-      console.warn('[DB] Detected invalid precinct seed data, rebuilding...');
-      await db.transaction('rw', db.precincts, db.recentSearches, db.favorites, db.savedPlaces, async () => {
-        await db.precincts.clear();
-        await db.recentSearches.clear();
-        await db.favorites.clear();
-        await db.savedPlaces.clear();
-      });
     }
 
-    console.log('[DB] Initializing database...');
+    const existingPrecinctCount = await db.precincts.count();
+    if (existingPrecinctCount === 0) {
+      console.log('[DB] Initializing precinct seed...');
 
-    // Load precinct data
-    const precinctDataModule = await import('@/data/precinctData.json');
-    const precinctBoundariesModule = await import('@/data/precinctBoundaries.json');
-    const precinctLocationsModule = await import('@/data/precinctLocations.json');
+      // Load precinct data
+      const precinctDataModule = await import('@/data/precinctData.json');
+      const precinctBoundariesModule = await import('@/data/precinctBoundaries.json');
+      const precinctLocationsModule = await import('@/data/precinctLocations.json');
 
-    const precinctData = precinctDataModule.default;
-    const precinctBoundaries = precinctBoundariesModule.default;
-    const precinctLocations = precinctLocationsModule.default;
+      const precinctData = precinctDataModule.default;
+      const precinctBoundaries = precinctBoundariesModule.default;
+      const precinctLocations = precinctLocationsModule.default;
 
-    // Transform and insert precincts
-    const rawPrecincts: any[] = Array.isArray(precinctData)
-      ? precinctData
-      : Object.values(precinctData as Record<string, any>);
+      // Transform and insert precincts
+      const rawPrecincts: any[] = Array.isArray(precinctData)
+        ? precinctData
+        : Object.values(precinctData as Record<string, any>);
 
-    const precincts: Precinct[] = rawPrecincts
-      .map((data: any) => {
-        const numInt = Number(data.precinctNum);
-        if (!Number.isFinite(numInt) || numInt <= 0) return null;
+      const precincts: Precinct[] = rawPrecincts
+        .map((data: any) => {
+          const numInt = Number(data.precinctNum);
+          if (!Number.isFinite(numInt) || numInt <= 0) return null;
 
-        const boundaries = (precinctBoundaries as any)[String(numInt)] || [];
-        const location = precinctLocations.find((p: any) => p.num === numInt);
+          const boundaries = (precinctBoundaries as any)[String(numInt)] || [];
+          const location = precinctLocations.find((p: any) => p.num === numInt);
 
-        // Calculate bounding box
-        let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
-        boundaries.forEach((coord: any) => {
-          minLat = Math.min(minLat, coord.latitude);
-          maxLat = Math.max(maxLat, coord.latitude);
-          minLng = Math.min(minLng, coord.longitude);
-          maxLng = Math.max(maxLng, coord.longitude);
-        });
+          // Calculate bounding box
+          let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
+          boundaries.forEach((coord: any) => {
+            minLat = Math.min(minLat, coord.latitude);
+            maxLat = Math.max(maxLat, coord.latitude);
+            minLng = Math.min(minLng, coord.longitude);
+            maxLng = Math.max(maxLng, coord.longitude);
+          });
 
-        const fallbackLat = Number(data.latitude);
-        const fallbackLng = Number(data.longitude);
-        const bboxCenterLat = Number.isFinite(minLat) && Number.isFinite(maxLat) ? (minLat + maxLat) / 2 : NaN;
-        const bboxCenterLng = Number.isFinite(minLng) && Number.isFinite(maxLng) ? (minLng + maxLng) / 2 : NaN;
-        const centroidLat = location?.lat ?? (Number.isFinite(fallbackLat) ? fallbackLat : (Number.isFinite(bboxCenterLat) ? bboxCenterLat : 0));
-        const centroidLng = location?.lng ?? (Number.isFinite(fallbackLng) ? fallbackLng : (Number.isFinite(bboxCenterLng) ? bboxCenterLng : 0));
+          const fallbackLat = Number(data.latitude);
+          const fallbackLng = Number(data.longitude);
+          const bboxCenterLat = Number.isFinite(minLat) && Number.isFinite(maxLat) ? (minLat + maxLat) / 2 : NaN;
+          const bboxCenterLng = Number.isFinite(minLng) && Number.isFinite(maxLng) ? (minLng + maxLng) / 2 : NaN;
+          const centroidLat = location?.lat ?? (Number.isFinite(fallbackLat) ? fallbackLat : (Number.isFinite(bboxCenterLat) ? bboxCenterLat : 0));
+          const centroidLng = location?.lng ?? (Number.isFinite(fallbackLng) ? fallbackLng : (Number.isFinite(bboxCenterLng) ? bboxCenterLng : 0));
 
-        return {
-          precinctNum: numInt,
-          name: data.name || `${numInt}th Precinct`,
-          address: data.address || '',
-          phone: data.phone || '',
-          borough: data.borough || '',
-          stationLat: Number.isFinite(fallbackLat) ? fallbackLat : undefined,
-          stationLng: Number.isFinite(fallbackLng) ? fallbackLng : undefined,
-          boundary: boundaries,
-          centroidLat,
-          centroidLng,
-          boundingBox: {
-            minLat: minLat === Infinity ? centroidLat : minLat,
-            maxLat: maxLat === -Infinity ? centroidLat : maxLat,
-            minLng: minLng === Infinity ? centroidLng : minLng,
-            maxLng: maxLng === -Infinity ? centroidLng : maxLng,
-          },
-          openingHours: data.openingHours || [],
-        } as Precinct;
-      })
-      .filter((p): p is Precinct => p !== null);
+          return {
+            precinctNum: numInt,
+            name: data.name || `${numInt}th Precinct`,
+            address: data.address || '',
+            phone: data.phone || '',
+            borough: data.borough || '',
+            stationLat: Number.isFinite(fallbackLat) ? fallbackLat : undefined,
+            stationLng: Number.isFinite(fallbackLng) ? fallbackLng : undefined,
+            boundary: boundaries,
+            centroidLat,
+            centroidLng,
+            boundingBox: {
+              minLat: minLat === Infinity ? centroidLat : minLat,
+              maxLat: maxLat === -Infinity ? centroidLat : maxLat,
+              minLng: minLng === Infinity ? centroidLng : minLng,
+              maxLng: maxLng === -Infinity ? centroidLng : maxLng,
+            },
+            openingHours: data.openingHours || [],
+          } as Precinct;
+        })
+        .filter((p): p is Precinct => p !== null);
 
-    await db.precincts.bulkAdd(precincts);
-    console.log(`[DB] Loaded ${precincts.length} precincts`);
+      await db.precincts.bulkAdd(precincts);
+      console.log(`[DB] Loaded ${precincts.length} precincts`);
+    }
 
-    // Load law categories
+    // Always sync law tables to reflect updated JSON seed.
     const lawCategoriesModule = await import('@/data/lawCategories.json');
     const lawCategories = lawCategoriesModule.default;
-    await db.lawCategories.bulkAdd(lawCategories);
-    console.log(`[DB] Loaded ${lawCategories.length} law categories`);
-
-    // Load law entries
     const lawEntriesModule = await import('@/data/lawEntries.json');
     const lawEntries = lawEntriesModule.default;
-    await db.lawEntries.bulkAdd(lawEntries);
-    console.log(`[DB] Loaded ${lawEntries.length} law entries`);
+    const [existingLawCategoryCount, existingLawEntryCount] = await Promise.all([
+      db.lawCategories.count(),
+      db.lawEntries.count(),
+    ]);
 
-    // Load squads
-    const squadsModule = await import('@/data/squads.json');
-    const squads = squadsModule.default;
-    await db.squads.bulkAdd(squads);
-    console.log(`[DB] Loaded ${squads.length} squads`);
+    if (
+      existingLawCategoryCount !== lawCategories.length ||
+      existingLawEntryCount !== lawEntries.length
+    ) {
+      await db.transaction('rw', db.lawCategories, db.lawEntries, async () => {
+        await db.lawCategories.clear();
+        await db.lawEntries.clear();
+        await db.lawCategories.bulkAdd(lawCategories);
+        await db.lawEntries.bulkAdd(lawEntries);
+      });
+      console.log(`[DB] Synced laws seed (${lawCategories.length} categories, ${lawEntries.length} entries)`);
+    }
 
-    // Load RDO schedules
-    const rdoSchedulesModule = await import('@/data/rdoSchedules.json');
-    const rdoSchedules = rdoSchedulesModule.default as RdoSchedule[];
-    await db.rdoSchedules.bulkAdd(rdoSchedules);
-    console.log(`[DB] Loaded ${rdoSchedules.length} RDO schedules`);
+    // Seed squads/schedules once if missing.
+    const existingSquadCount = await db.squads.count();
+    if (existingSquadCount === 0) {
+      const squadsModule = await import('@/data/squads.json');
+      const squads = squadsModule.default;
+      await db.squads.bulkAdd(squads);
+      console.log(`[DB] Loaded ${squads.length} squads`);
+    }
+
+    const existingScheduleCount = await db.rdoSchedules.count();
+    if (existingScheduleCount === 0) {
+      const rdoSchedulesModule = await import('@/data/rdoSchedules.json');
+      const rdoSchedules = rdoSchedulesModule.default as RdoSchedule[];
+      await db.rdoSchedules.bulkAdd(rdoSchedules);
+      console.log(`[DB] Loaded ${rdoSchedules.length} RDO schedules`);
+    }
 
     return true;
   } catch (error) {

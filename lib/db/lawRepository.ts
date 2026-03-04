@@ -3,7 +3,20 @@ import { db } from './database';
 import type { LawCategory, LawEntry } from '@/types';
 
 export async function getAllCategories(): Promise<LawCategory[]> {
-  return await db.lawCategories.orderBy('displayOrder').toArray();
+  const [categories, entries] = await Promise.all([
+    db.lawCategories.orderBy('displayOrder').toArray(),
+    db.lawEntries.toArray(),
+  ]);
+
+  const counts = entries.reduce<Record<string, number>>((acc, entry) => {
+    acc[entry.categoryId] = (acc[entry.categoryId] || 0) + 1;
+    return acc;
+  }, {});
+
+  return categories.map((category) => ({
+    ...category,
+    entryCount: counts[category.categoryId] || 0,
+  }));
 }
 
 export async function getEntriesByCategory(categoryId: string): Promise<LawEntry[]> {

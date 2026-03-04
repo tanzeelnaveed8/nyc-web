@@ -138,5 +138,145 @@
     "sectionNumber": "AC 16-118",
     "title": "Littering prohibited",
     "bodyText": "No person shall litter, sweep, throw or cast, or direct, suffer or permit any servant, agent, employee or other person under his or her control, to litter, sweep, throw or cast any ashes, garbage, paper, dust or other rubbish or refuse of any kind whatsoever, in or upon any street or public place."
+  },
+  {
+    "entryId": 21,
+    "categoryId": "penal",
+    "sectionNumber": "PL 120.14",
+    "title": "Menacing in the second degree",
+    "bodyText": "A person is guilty of menacing in the second degree when he or she intentionally places or attempts to place another person in reasonable fear of physical injury, serious physical injury or death by displaying a deadly weapon, dangerous instrument, or what appears to be a firearm."
+  },
+  {
+    "entryId": 22,
+    "categoryId": "penal",
+    "sectionNumber": "PL 120.15",
+    "title": "Menacing in the third degree",
+    "bodyText": "A person is guilty of menacing in the third degree when, by physical menace, he or she intentionally places or attempts to place another person in fear of death, imminent serious physical injury or physical injury."
+  },
+  {
+    "entryId": 23,
+    "categoryId": "penal",
+    "sectionNumber": "PL 145.00",
+    "title": "Criminal mischief in the fourth degree",
+    "bodyText": "A person is guilty of criminal mischief in the fourth degree when, having no right to do so nor any reasonable ground to believe that he has such right, he intentionally damages property of another person."
+  },
+  {
+    "entryId": 24,
+    "categoryId": "penal",
+    "sectionNumber": "PL 170.20",
+    "title": "Criminal possession of a forged instrument in the third degree",
+    "bodyText": "A person is guilty of criminal possession of a forged instrument in the third degree when, with knowledge that it is forged and with intent to defraud, deceive or injure another, he utters or possesses a forged instrument."
+  },
+  {
+    "entryId": 25,
+    "categoryId": "penal",
+    "sectionNumber": "PL 195.05",
+    "title": "Obstructing governmental administration",
+    "bodyText": "A person is guilty of obstructing governmental administration when he intentionally obstructs, impairs or perverts the administration of law or other governmental function by means of intimidation, physical force or interference."
+  },
+  {
+    "entryId": 26,
+    "categoryId": "penal",
+    "sectionNumber": "PL 205.30",
+    "title": "Resisting arrest",
+    "bodyText": "A person is guilty of resisting arrest when he intentionally prevents or attempts to prevent a police officer from effecting an authorized arrest of himself or another person."
+  },
+  {
+    "entryId": 27,
+    "categoryId": "penal",
+    "sectionNumber": "PL 215.50",
+    "title": "Criminal contempt in the second degree",
+    "bodyText": "A person is guilty of criminal contempt in the second degree when he engages in disobedience or resistance to the lawful process or other mandate of a court."
+  },
+  {
+    "entryId": 28,
+    "categoryId": "penal",
+    "sectionNumber": "PL 220.03",
+    "title": "Criminal possession of a controlled substance in the seventh degree",
+    "bodyText": "A person is guilty of criminal possession of a controlled substance in the seventh degree when he knowingly and unlawfully possesses a controlled substance."
+  },
+  {
+    "entryId": 29,
+    "categoryId": "penal",
+    "sectionNumber": "PL 240.26",
+    "title": "Harassment in the second degree",
+    "bodyText": "A person is guilty of harassment in the second degree when, with intent to harass, annoy or alarm another person, he strikes, shoves, kicks or otherwise subjects such other person to physical contact."
+  },
+  {
+    "entryId": 30,
+    "categoryId": "penal",
+    "sectionNumber": "PL 240.30",
+    "title": "Aggravated harassment in the second degree",
+    "bodyText": "A person is guilty of aggravated harassment in the second degree when, with intent to harass another person, he communicates with a person by telephone, electronic means or mail in a manner likely to cause annoyance or alarm."
+  },
+  {
+    "entryId": 31,
+    "categoryId": "cpl",
+    "sectionNumber": "CPL 100.15",
+    "title": "Informations and complaints; factual part and offenses charged",
+    "bodyText": "The factual part of an information, misdemeanor complaint or felony complaint must contain a statement of the complainant alleging facts supporting every element of the offense charged."
+  },
+  {
+    "entryId": 32,
+    "categoryId": "cpl",
+    "sectionNumber": "CPL 100.40",
+    "title": "Facial sufficiency of informations and misdemeanor complaints",
+    "bodyText": "An information is sufficient on its face when it substantially conforms to prescribed requirements, provides reasonable cause to believe the defendant committed the offense, and contains non-hearsay factual allegations establishing every element."
+  },
+  {
+    "entryId": 33,
+    "categoryId": "cpl",
+    "sectionNumber": "CPL 140.50",
+    "title": "Temporary questioning of persons in public places",
+    "bodyText": "A police officer may stop a person in a public place when he reasonably suspects the person is committing, has committed or is about to commit a felony or misdemeanor, and may demand name, address and explanation of conduct."
+  },
+  {
+    "entryId": 34,
+    "categoryId": "cpl",
+    "sectionNumber": "CPL 150.20",
+    "title": "Appearance ticket; in general",
+    "bodyText": "Whenever a police officer is authorized to arrest a person without a warrant for an offense other than certain felonies, he may issue and serve an appearance ticket instead of taking such person into custody."
+  },
+  {
+    "entryId": 35,
+    "categoryId": "cpl",
+    "sectionNumber": "CPL 160.10",
+    "title": "Photographs and palmprints upon arrest",
+    "bodyText": "The police officer or agency having custody of an arrested person may take photographs and, where authorized, palmprints and other identifying data for investigative and criminal justice purposes."
+  },
+  {
+    "entryId": 36,
+    "categoryId": "vtl",
+    "sectionNumber": "VTL 375",
+    "title": "Equipment requirements",
+    "bodyText": "Motor vehicles operated on public highways must be equipped as required by law, including proper brakes, lights, mirrors and other safety equipment in good working condition."
+  },
+  {
+    "entryId": 37,
+    "categoryId": "vtl",
+    "sectionNumber": "VTL 509",
+    "title": "Drivers must be licensed",
+    "bodyText": "No person shall operate or drive a motor vehicle on a public highway in this state unless he is duly licensed pursuant to the vehicle and traffic law."
+  },
+  {
+    "entryId": 38,
+    "categoryId": "vtl",
+    "sectionNumber": "VTL 1128",
+    "title": "Driving within a single lane",
+    "bodyText": "A vehicle shall be driven as nearly as practicable entirely within a single lane and shall not be moved from such lane until the driver has first ascertained that such movement can be made with safety."
+  },
+  {
+    "entryId": 39,
+    "categoryId": "admin",
+    "sectionNumber": "AC 10-131",
+    "title": "Firearms and imitation firearms in public places",
+    "bodyText": "No person shall possess in public any rifle, shotgun, firearm, or imitation firearm except as otherwise authorized by law. Violations are subject to enforcement by police and other agencies."
+  },
+  {
+    "entryId": 40,
+    "categoryId": "admin",
+    "sectionNumber": "AC 19-176",
+    "title": "Idling restrictions",
+    "bodyText": "No person shall cause or permit the engine of a motor vehicle to idle for longer than permitted by law while parking, standing, or stopping, except where an exemption applies."
   }
 ]
